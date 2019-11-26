@@ -11,7 +11,7 @@ model.eval()
 def get_prediction(img_path, threshold):
   img = Image.open(img_path)
   transform = T.Compose([T.ToTensor()])
-  img = transform(img)
+  img = transform(img)[:3,:,:]
   pred = model([img])
   masks = [
     mask
@@ -32,7 +32,7 @@ def get_masks(image):
 def instance_segmentation_api(img_path, threshold=0.5):
   masks = get_prediction(img_path, threshold)
   img = cv2.imread(img_path)
-  mask = None
+  mask = np.zeros(img.shape, np.uint8)
   for i in range(len(masks)):
     mask_ = get_masks(masks[i])
     if (i == 0):
@@ -40,7 +40,6 @@ def instance_segmentation_api(img_path, threshold=0.5):
     mask = cv2.addWeighted(mask, 1, mask_, 1, 0)
 
   output = cv2.addWeighted(img, 1, mask, 1, 0)
-  print(img.shape, mask.shape)
   persons = cv2.bitwise_and(img, mask)
 
   output = crop(output)

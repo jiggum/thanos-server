@@ -6,7 +6,7 @@ import neuralgym as ng
 from util import crop
 from inpaint_model import InpaintCAModel
 
-def inpainting_api(image, mask, output_path):
+def inpainting_api(image, mask):
     FLAGS = ng.Config('inpaint.yml')
 
     model = InpaintCAModel()
@@ -44,5 +44,4 @@ def inpainting_api(image, mask, output_path):
         sess.run(assign_ops)
         print('Model loaded.')
         result = sess.run(output)
-        # cv2.imwrite(output_path, result[0][:, :, ::-1])
         return result[0][:, :, ::-1]

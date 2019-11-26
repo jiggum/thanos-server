@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
+from flask_cors import cross_origin
 import os
 import cv2
 import boto3
@@ -12,15 +13,21 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 @app.route('/thanos', methods=['POST'])
+@cross_origin(origin=['localhost'])
 def thanos():
-    if request.method == 'POST':
-        file = request.files['file']
-        img_bytes = file.read()
-        input_img, mask_img, persons_img = instance_segmentation_api('origin.jpeg')
-        background_img = inpainting_api(input_img, mask_img, 'output.png')
+    uid = uuid.uuid4()
+    background_file_name = '{}-{}.png'.format(uid, 'background')
+    persons_file_name = '{}-{}.png'.format(uid, 'persons')
+    image = request.files['image']
+    input_file_name = '{}-{}'.format(uid, image.filename)
+    try:
+        with open(input_file_name, 'wb') as f:
+            f.write(image.read())
 
-        background_file_name = '{}-{}.png'.format(uuid.uuid4(), 'background')
-        persons_file_name = '{}-{}.png'.format(uuid.uuid4(), 'persons')
+        input_img, mask_img, persons_img = instance_segmentation_api(input_file_name)
+        background_img = inpainting_api(input_img, mask_img)
+
+
         cv2.imwrite(background_file_name, background_img)
         cv2.imwrite(persons_file_name, get_transparent_img(persons_img))
 
@@ -29,10 +36,20 @@ def thanos():
         s3.upload_file(persons_file_name, app.config['S3_BUCKET'], persons_file_name)
         os.remove(background_file_name)
         os.remove(persons_file_name)
+        os.remove(input_file_name)
         return jsonify({
             'background': "{}{}".format(app.config['S3_LOCATION'], background_file_name),
             'persons': "{}{}".format(app.config['S3_LOCATION'], persons_file_name),
         })
+    except Exception as e:
+        print(e)
+        try:
+            os.remove(background_file_name)
+            os.remove(persons_file_name)
+            os.remove(input_file_name)
+        except:
+            pass
+    return abort(500)
 
 if __name__ == '__main__':
    app.run(debug = True)
