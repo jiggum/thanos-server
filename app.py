@@ -11,8 +11,8 @@ from util import get_transparent_img
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
-@app.route('/tanos', methods=['POST'])
-def tanos():
+@app.route('/thanos', methods=['POST'])
+def thanos():
     if request.method == 'POST':
         file = request.files['file']
         img_bytes = file.read()
