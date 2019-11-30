@@ -8,6 +8,7 @@ from inpaint_model import InpaintCAModel
 
 def inpainting_api(image, mask):
     FLAGS = ng.Config('inpaint.yml')
+    tf.reset_default_graph()
 
     model = InpaintCAModel()
     # image = cv2.imread(img_path)

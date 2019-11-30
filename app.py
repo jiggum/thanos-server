@@ -12,8 +12,12 @@ from util import get_transparent_img
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
+@app.route('/')
+def health_check():
+    return 'Alive!'
+
 @app.route('/thanos', methods=['POST'])
-@cross_origin(origin=['localhost'])
+@cross_origin()
 def thanos():
     uid = uuid.uuid4()
     background_file_name = '{}-{}.png'.format(uid, 'background')
@@ -52,4 +56,4 @@ def thanos():
     return abort(500)
 
 if __name__ == '__main__':
-   app.run(debug = True)
+   app.run(host='0.0.0.0', debug = True)
