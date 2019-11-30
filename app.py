@@ -21,36 +21,58 @@ def health_check():
 def thanos():
     uid = uuid.uuid4()
     background_file_name = '{}-{}.png'.format(uid, 'background')
-    persons_file_name = '{}-{}.png'.format(uid, 'persons')
+    persons1_file_name = '{}-{}.png'.format(uid, 'persons1')
+    persons2_file_name = '{}-{}.png'.format(uid, 'persons2')
     image = request.files['image']
     input_file_name = '{}-{}'.format(uid, image.filename)
     try:
         with open(input_file_name, 'wb') as f:
             f.write(image.read())
 
-        input_img, mask_img, persons_img = instance_segmentation_api(input_file_name)
+        input_img, mask_img, persons1_img, persons2_img = instance_segmentation_api(input_file_name)
+        if (mask_img is None):
+            return jsonify({
+                'code': 'error',
+                'message': 'No Persons on Image'
+            })
         background_img = inpainting_api(input_img, mask_img)
-
-
         cv2.imwrite(background_file_name, background_img)
-        cv2.imwrite(persons_file_name, get_transparent_img(persons_img))
+        if (persons1_img is not None):
+            cv2.imwrite(persons1_file_name, get_transparent_img(persons1_img))
+        if (persons2_img is not None):
+            cv2.imwrite(persons2_file_name, get_transparent_img(persons2_img))
 
         s3 = boto3.client('s3', region_name='ap-northeast-2')
         s3.upload_file(background_file_name, app.config['S3_BUCKET'], background_file_name)
-        s3.upload_file(persons_file_name, app.config['S3_BUCKET'], persons_file_name)
-        os.remove(background_file_name)
-        os.remove(persons_file_name)
+        if (persons1_img is not None):
+            s3.upload_file(persons1_file_name, app.config['S3_BUCKET'], persons1_file_name)
+        if (persons2_img is not None):
+            s3.upload_file(persons2_file_name, app.config['S3_BUCKET'], persons2_file_name)
         os.remove(input_file_name)
-        return jsonify({
+        os.remove(background_file_name)
+        if (persons1_img is not None):
+            os.remove(persons1_file_name)
+        if (persons2_img is not None):
+            os.remove(persons2_file_name)
+
+        data = {
             'background': "{}{}".format(app.config['S3_LOCATION'], background_file_name),
-            'persons': "{}{}".format(app.config['S3_LOCATION'], persons_file_name),
+        }
+        if (persons1_img is not None):
+            data['persons1'] = "{}{}".format(app.config['S3_LOCATION'], persons1_file_name)
+        if (persons2_img is not None):
+            data['persons2'] = "{}{}".format(app.config['S3_LOCATION'], persons2_file_name)
+        return jsonify({
+            'code': 'ok',
+            'data': data
         })
     except Exception as e:
         print(e)
         try:
-            os.remove(background_file_name)
-            os.remove(persons_file_name)
             os.remove(input_file_name)
+            os.remove(background_file_name)
+            os.remove(persons1_file_name)
+            os.remove(persons2_file_name)
         except:
             pass
     return abort(500)
