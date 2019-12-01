@@ -16,7 +16,7 @@ def get_prediction(img_path, threshold):
   pred = model([img])
   masks = [
     mask
-    for i, mask in enumerate((pred[0]['masks']>0.01).squeeze().detach().cpu().numpy())
+    for i, mask in enumerate((pred[0]['masks']>0.01).squeeze(0).detach().cpu().numpy())
     if pred[0]['scores'][i].detach().numpy() > threshold and
       pred[0]['labels'][i].numpy() == 1
   ]
