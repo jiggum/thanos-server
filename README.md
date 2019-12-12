@@ -1,8 +1,19 @@
-# Thanos Server
+# [THANOSSNAP.ORG](https://thanossnap.org)
+> [Frontend repo is here](https://github.com/jiggum/thanos-client)
+
+## Process
+<p align="center">
+  <img src="http://thanos.jiggum.s3.amazonaws.com/assets/process.png">
+  Instance Segmentation & Generative Inpainting
+</p>
+
+## Example Cases
+<p align="center">
+  <img src="http://thanos.jiggum.s3.amazonaws.com/assets/results.png">
+</p>
 
 ## Before you start
 #### Locate [inpaint](https://drive.google.com/open?id=1bgNv9wtk_ExRgJBhWv1RtaAqqCP1ypGS) directory under the *model_logs* directory
-
 
 ## Run
 
