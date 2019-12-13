@@ -1,2 +1,2 @@
-S3_BUCKET = 'thanos.jiggum' 
-S3_LOCATION = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
+S3_BUCKET = 'thanossnap.org' 
+S3_LOCATION = 'https://thanossnap.org/'.format(S3_BUCKET)

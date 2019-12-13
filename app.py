@@ -23,6 +23,7 @@ def thanos():
     background_file_name = '{}-{}.png'.format(uid, 'background')
     persons1_file_name = '{}-{}.png'.format(uid, 'persons1')
     persons2_file_name = '{}-{}.png'.format(uid, 'persons2')
+    s3_directory_path = 'images/{}'
     image = request.files['image']
     input_file_name = '{}-{}'.format(uid, image.filename)
     try:
@@ -43,11 +44,11 @@ def thanos():
             cv2.imwrite(persons2_file_name, get_transparent_img(persons2_img))
 
         s3 = boto3.client('s3', region_name='ap-northeast-2')
-        s3.upload_file(background_file_name, app.config['S3_BUCKET'], background_file_name)
+        s3.upload_file(background_file_name, app.config['S3_BUCKET'], s3_directory_path.format(background_file_name))
         if (persons1_img is not None):
-            s3.upload_file(persons1_file_name, app.config['S3_BUCKET'], persons1_file_name)
+            s3.upload_file(persons1_file_name, app.config['S3_BUCKET'], s3_directory_path.format(persons1_file_name))
         if (persons2_img is not None):
-            s3.upload_file(persons2_file_name, app.config['S3_BUCKET'], persons2_file_name)
+            s3.upload_file(persons2_file_name, app.config['S3_BUCKET'], s3_directory_path.format(persons2_file_name))
         os.remove(input_file_name)
         os.remove(background_file_name)
         if (persons1_img is not None):
@@ -56,12 +57,12 @@ def thanos():
             os.remove(persons2_file_name)
 
         data = {
-            'background': "{}{}".format(app.config['S3_LOCATION'], background_file_name),
+            'background': "{}{}".format(app.config['S3_LOCATION'], s3_directory_path.format(background_file_name)),
         }
         if (persons1_img is not None):
-            data['persons1'] = "{}{}".format(app.config['S3_LOCATION'], persons1_file_name)
+            data['persons1'] = "{}{}".format(app.config['S3_LOCATION'], s3_directory_path.format(persons1_file_name))
         if (persons2_img is not None):
-            data['persons2'] = "{}{}".format(app.config['S3_LOCATION'], persons2_file_name)
+            data['persons2'] = "{}{}".format(app.config['S3_LOCATION'], s3_directory_path.format(persons2_file_name))
         return jsonify({
             'code': 'ok',
             'data': data
